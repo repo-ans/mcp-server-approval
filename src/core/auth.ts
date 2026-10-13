@@ -9,6 +9,7 @@ export const generateApiKey = () => `hcp_${randomBytes(24).toString('base64url')
 // Small in-memory cache so every MCP request doesn't hit Supabase. Revoked keys stop working within 60s.
 const CACHE_TTL_MS = 60_000;
 const cache = new Map<string, { agent: Agent | null; expires: number }>();
+export const clearAuthCache = () => cache.clear();
 
 async function lookupAgent(apiKey: string): Promise<Agent | null> {
   const hash = hashApiKey(apiKey);

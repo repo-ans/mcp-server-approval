@@ -8,7 +8,8 @@ import { requireAgent } from './core/auth.js';
 import { canCall } from './core/permissions.js';
 import { logToolCall, withLogging } from './core/logger.js';
 import { submitForApproval } from './core/approval.js';
-import { parseSlackInteraction } from './core/slack.js';
+import { parseSlackInteraction, verifySlackSignature } from './core/slack.js';
+import { handleAgentCommand } from './core/slack-commands.js';
 import type { Agent, AnyTool } from './core/types.js';
 import { tools } from './registry.js';
 import { submitJobRequest, WORKFLOW_NAME, type JobRequestInput } from './workflows/job-request.js';
@@ -21,6 +22,15 @@ async function runTool(agent: Agent, tool: AnyTool, input: Record<string, unknow
     await logToolCall({ agent: agent.name, tool: tool.name, inputs: input, result: { error: message }, status: 'rejected_permission', latency_ms: 0 });
     return text(message, true);
   }
+  // Workflow tools prepare and submit their own approval (and log it); nothing is written yet.
+  if (tool.submitsOwnApproval) {
+    try {
+      return text(JSON.stringify(await tool.handler(input, { agent: agent.name }), null, 2));
+    } catch (err) {
+      return text(`Error in ${tool.name}: ${(err as Error).message}`, true);
+    }
+  }
+
   // Write tools never touch Housecall Pro here: they are queued and executed only after Slack approval.
   if (tool.type === 'write') {
     const start = Date.now();
@@ -41,7 +51,7 @@ async function runTool(agent: Agent, tool: AnyTool, input: Record<string, unknow
   }
 
   try {
-    const result = await withLogging(agent.name, tool.name, input, () => tool.handler(input));
+    const result = await withLogging(agent.name, tool.name, input, () => tool.handler(input, { agent: agent.name }));
     return text(JSON.stringify(result, null, 2));
   } catch (err) {
     return text(`Error in ${tool.name}: ${(err as Error).message}`, true);
@@ -138,6 +148,17 @@ export function createApp(opts: AppOptions): express.Express {
       const status = err instanceof Anthropic.APIError ? 502 : 500;
       res.status(status).json({ error: (err as Error).message });
     }
+  });
+
+  // Slack slash command /hcp-agent: admins create, list, re-role and revoke API keys from Slack.
+  // Answered synchronously (one quick DB call), well inside Slack's 3 second limit.
+  app.post('/slack/commands', express.raw({ type: '*/*', limit: '1mb' }), async (req, res) => {
+    const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '';
+    if (!verifySlackSignature(rawBody, req.header('x-slack-request-timestamp'), req.header('x-slack-signature'))) {
+      res.status(401).send('invalid signature');
+      return;
+    }
+    res.json(await handleAgentCommand(new URLSearchParams(rawBody), req.get('host') ?? ''));
   });
 
   // Slack interactivity (Approve / Reject buttons). Raw body is needed to verify the signature.

@@ -20,6 +20,7 @@ const EnvSchema = z
     SLACK_SIGNING_SECRET: z.string().min(10),
     SLACK_CHANNEL_ID: z.string().regex(/^[CG][A-Z0-9]+$/, 'must be a channel id like C0123ABCD (not the #name)'),
     SLACK_APPROVER_IDS: z.string().optional(),
+    SLACK_ADMIN_IDS: z.string().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
     ANTHROPIC_MODEL: z.string().optional().transform((v) => v || 'claude-opus-5-5'),
   })
@@ -55,6 +56,8 @@ export const config = {
     channelId: env.SLACK_CHANNEL_ID,
     // Optional allow-list of Slack user ids who may approve. Empty = anyone in the channel.
     approverIds: (env.SLACK_APPROVER_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    // Slack user ids allowed to manage API keys with /hcp-agent. Empty = command disabled.
+    adminIds: (env.SLACK_ADMIN_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
   },
   anthropic: {
     // Only needed for the job request workflow (email/PDF -> Claude extraction).

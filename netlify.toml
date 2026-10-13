@@ -10,7 +10,7 @@
   # Netlify's secret scanner treats every env var as a secret and fails the build if its value appears
   # in the repo. These are plain settings (public URL, model name, flags), not secrets, so skip them.
   # Real secrets (API keys, tokens, signing secret, Supabase key) are still scanned.
-  SECRETS_SCAN_OMIT_KEYS = "HCP_BASE_URL,ANTHROPIC_MODEL,HCP_MOCK,HCP_MOCK_WRITES,PORT,SLACK_CHANNEL_ID,SLACK_APPROVER_IDS"
+  SECRETS_SCAN_OMIT_KEYS = "HCP_BASE_URL,ANTHROPIC_MODEL,HCP_MOCK,HCP_MOCK_WRITES,PORT,SLACK_CHANNEL_ID,SLACK_APPROVER_IDS,SLACK_ADMIN_IDS"
 
 [functions]
   node_bundler = "esbuild"

@@ -6,10 +6,10 @@ Shows Claude reading Housecall Pro data, requesting changes that a human approve
 
 1. **Use mock data.** In `.env`, set `HCP_MOCK=true`. A real Housecall Pro account contains real customers' names, phones and addresses, which shouldn't appear in a public video. Mock mode serves realistic data (Sarah Mitchell, David Ramirez, Emily Chen) and simulates writes. Restart the server after changing `.env`.
 2. Start the server and the tunnel: `npm run dev`, and `cloudflared tunnel --url http://localhost:3000`. Check that the Slack **Request URL** matches the tunnel and ends in `/slack/actions`. On Netlify, use the site URL instead.
-3. Create two demo agents, if you haven't already:
-   ```bash
-   npm run create-agent -- demo-writer writer
-   npm run create-agent -- demo-reader read_only
+3. Create two demo agents in Slack, if you haven't already. Your Slack member id must be in `SLACK_ADMIN_IDS`.
+   ```
+   /hcp-agent create demo-writer writer
+   /hcp-agent create demo-reader read_only
    ```
 4. Connect **both** to Claude, so you can switch roles without restarting.
    **Claude Code:**
@@ -83,21 +83,21 @@ Expected: Claude reports *"Permission denied: agent demo-reader has role read_on
 
 Say: *"Each AI agent or integration gets its own key and role, so a reporting bot can never change data."*
 
+Optional: in Slack, type `/hcp-agent list` to show that keys are created, re-roled and revoked from Slack by admins, with no code involved.
+
 ### 4. Email / PDF → customer + job (60s)
 
-In the terminal:
+Attach `samples/job-request.pdf` to the Claude chat (a property manager's work order for a leaking sink) and type:
 
-```bash
-npm run test-job-request -- samples/job-request.pdf
-```
+> **This work order just came in. Add it to Housecall Pro.**
 
-Show the PDF for a moment first (`samples/job-request.pdf`). It's a property manager's work order for a leaking sink.
-
-Expected output: Claude extracted Maria Gonzalez (Lakeline Property Management), the Brushy Creek Rd service address, start *2026-10-16 2:00 PM Central*, and notes with the tenant contact, lockbox code and the $450 limit.
+Expected: Claude calls `submit_job_request` and shows what was extracted: Maria Gonzalez (Lakeline Property Management), the Brushy Creek Rd service address, start *Oct 16, 2:00 PM Central*, and notes with the tenant contact, lockbox code and the $450 limit. It says the request is pending approval.
 
 In Slack: **"Approval needed: job_request"** lists both steps, *1. Create customer* and *2. Create job*. Click **Approve**. The customer is created, then the job is created for that new customer.
 
-Optionally also run the email version: `npm run test-job-request -- samples/job-request-email.txt`. "Next Tuesday at 9am" gets turned into an actual date.
+Optionally, paste the text of `samples/job-request-email.txt` into the chat instead. "Next Tuesday at 9am" gets turned into an actual date.
+
+Say: *"The same workflow has an HTTP endpoint, so an inbox rule or a website form can feed it automatically, with no chat needed."*
 
 ### 5. The audit log (30s)
 

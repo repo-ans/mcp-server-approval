@@ -8,7 +8,7 @@ import { formatFields, postAlert, postApprovalMessage, replyEphemeral, updateApp
 type Inputs = Record<string, unknown>;
 
 interface Action {
-  run: (inputs: Inputs) => Promise<unknown>;
+  run: (inputs: Inputs, ctx: { agent: string }) => Promise<unknown>;
   /** Optional custom Slack summary of the inputs (mrkdwn). Defaults to a key/value list. */
   describe?: (inputs: Inputs) => string;
 }
@@ -81,7 +81,7 @@ export async function decide(id: string, approve: boolean, decidedBy: string, or
   const action = actions.get(row.tool);
   try {
     if (!action) throw new Error(`Action "${row.tool}" is no longer registered on this server`);
-    const result = await action.run(row.inputs);
+    const result = await action.run(row.inputs, { agent: row.agent });
     await db.from('approval_requests').update({ result }).eq('id', id);
     await logToolCall({ agent: row.agent, tool: row.tool, inputs: row.inputs, result, status: 'approved', latency_ms: Date.now() - start });
     const mode = config.hcp.mock ? 'HCP_MOCK' : config.hcp.mockWrites ? 'HCP_MOCK_WRITES' : null;

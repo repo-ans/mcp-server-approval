@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { config } from '../config.js';
 import { registerAction, submitForApproval } from '../core/approval.js';
 import { logToolCall } from '../core/logger.js';
-import type { AnyTool } from '../core/types.js';
+import { defineTool, type AnyTool } from '../core/types.js';
 import * as hcp from '../connectors/housecallpro/client.js';
 import { tools } from '../connectors/housecallpro/tools.js';
 
@@ -121,7 +121,7 @@ function describePlan(inputs: Record<string, unknown>): string {
   return `_Extracted by Claude from ${source === 'pdf' ? 'a PDF' : 'an email'}:_\n${step1}\n${step2}`;
 }
 
-async function runPlan(inputs: Record<string, unknown>): Promise<unknown> {
+async function runPlan(inputs: Record<string, unknown>, ctx: { agent: string }): Promise<unknown> {
   const { existing_customer, request } = inputs as unknown as Plan;
   const c = request.customer;
 
@@ -130,13 +130,16 @@ async function runPlan(inputs: Record<string, unknown>): Promise<unknown> {
   let customerResult: unknown = existing_customer ? { existing: true, ...existing_customer } : undefined;
 
   if (!customerId) {
-    const created = (await toolByName('create_customer').handler({
-      first_name: c.first_name,
-      last_name: c.last_name,
-      email: c.email ?? undefined,
-      mobile_number: c.phone ?? undefined,
-      address: c.address ? { ...c.address, country: 'US' } : undefined,
-    })) as { customer_id: string; address_id: string | null };
+    const created = (await toolByName('create_customer').handler(
+      {
+        first_name: c.first_name,
+        last_name: c.last_name,
+        email: c.email ?? undefined,
+        mobile_number: c.phone ?? undefined,
+        address: c.address ? { ...c.address, country: 'US' } : undefined,
+      },
+      ctx,
+    )) as { customer_id: string; address_id: string | null };
     customerId = created.customer_id;
     addressId = created.address_id ?? undefined;
     customerResult = created;
@@ -144,13 +147,16 @@ async function runPlan(inputs: Record<string, unknown>): Promise<unknown> {
 
   // Step 2 uses the new customer's id (and address id) from step 1.
   try {
-    const job = await toolByName('create_job').handler({
-      customer_id: customerId,
-      address_id: addressId,
-      description: request.job.description,
-      scheduled_start: request.job.scheduled_start ?? undefined,
-      notes: request.job.notes ?? undefined,
-    });
+    const job = await toolByName('create_job').handler(
+      {
+        customer_id: customerId,
+        address_id: addressId,
+        description: request.job.description,
+        scheduled_start: request.job.scheduled_start ?? undefined,
+        notes: request.job.notes ?? undefined,
+      },
+      ctx,
+    );
     return { customer: customerResult, job };
   } catch (err) {
     // Make a partial result explicit so nobody re-approves and creates a duplicate customer.
@@ -179,3 +185,30 @@ export async function submitJobRequest(agent: string, input: JobRequestInput) {
     throw err;
   }
 }
+
+/** The same workflow as an MCP tool, so a user can paste an email or attach a PDF in a Claude chat. */
+export const jobRequestTool = defineTool({
+  name: 'submit_job_request',
+  type: 'write',
+  submitsOwnApproval: true,
+  description: [
+    'Turn a new service request (a customer email, web-form submission, voicemail transcript, or the text of an attached',
+    'PDF work order) into a Housecall Pro customer + job. Pass the FULL original text, unedited. The server extracts the',
+    'customer and job, reuses an existing customer if the email/phone matches, and posts ONE Slack approval that creates',
+    'both. REQUIRES HUMAN APPROVAL; you get back a pending approval request id and what was extracted.',
+    'Use this instead of separate create_customer + create_job calls whenever the user shares a new request to book.',
+    'Example: {"request_text": "From: Jordan Blake <jordan@example.com>\\nSubject: AC blowing warm air\\n\\nHi, can a tech come next Tuesday at 9am? 742 Oak Ridge Dr, Austin TX 78745..."}',
+  ].join('\n'),
+  inputSchema: {
+    request_text: z.string().min(20).describe('The complete original email / form / document text'),
+  },
+  handler: async ({ request_text }, { agent }) => {
+    const result = await submitJobRequest(agent, { text: request_text });
+    return {
+      ...result,
+      message:
+        `Pending human approval (request id ${result.approval_request_id}). Posted to Slack; nothing is created in ` +
+        'Housecall Pro until a person clicks Approve. Show the user what was extracted; do not resubmit.',
+    };
+  },
+});
