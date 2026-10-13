@@ -1,0 +1,33 @@
+{
+  "name": "hcp-mcp-server",
+  "version": "0.1.0",
+  "description": "Remote MCP server connecting Claude to Housecall Pro with role-based auth, Slack approval gate and Supabase logging",
+  "type": "module",
+  "main": "dist/src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "typecheck": "tsc --noEmit",
+    "create-agent": "tsx src/scripts/create-agent.ts",
+    "test-job-request": "tsx src/scripts/test-job-request.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@supabase/supabase-js": "^2.117.3",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "serverless-http": "^4.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

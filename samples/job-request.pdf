@@ -1,0 +1,57 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1570 >>
+stream
+BT
+/F2 20 Tf 1 0 0 1 56 760 Tm (WORK ORDER REQUEST) Tj
+/F1 11 Tf 1 0 0 1 56 730 Tm (Lakeline Property Management  |  1200 Lakeline Blvd, Suite 300, Cedar Park, TX 78613) Tj
+/F1 11 Tf 1 0 0 1 56 709 Tm (Date issued: 2026-10-13          Work order #: LPM-20931) Tj
+/F1 11 Tf 1 0 0 1 56 688 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 667 Tm (Requested by) Tj
+/F1 11 Tf 1 0 0 1 56 644 Tm (Name: Maria Gonzalez \(Maintenance Coordinator\)) Tj
+/F1 11 Tf 1 0 0 1 56 623 Tm (Email: maria.gonzalez@lakelinepm.example     Phone: 512-555-0177) Tj
+/F1 11 Tf 1 0 0 1 56 602 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 581 Tm (Service location) Tj
+/F1 11 Tf 1 0 0 1 56 558 Tm (Property: 4815 Brushy Creek Rd, Unit 12B, Round Rock, TX 78681) Tj
+/F1 11 Tf 1 0 0 1 56 537 Tm (Tenant: Daniel Okafor - 737-555-0148 \(tenant is home after 2pm on weekdays\)) Tj
+/F1 11 Tf 1 0 0 1 56 516 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 495 Tm (Problem description) Tj
+/F1 11 Tf 1 0 0 1 56 472 Tm (Kitchen sink is leaking under the cabinet; water damage starting on the cabinet floor.) Tj
+/F1 11 Tf 1 0 0 1 56 451 Tm (Garbage disposal hums but does not turn. Please repair the leak and replace the disposal) Tj
+/F1 11 Tf 1 0 0 1 56 430 Tm (if it cannot be fixed \(owner approved up to $450 without further approval\).) Tj
+/F1 11 Tf 1 0 0 1 56 409 Tm () Tj
+/F2 13 Tf 1 0 0 1 56 388 Tm (Scheduling) Tj
+/F1 11 Tf 1 0 0 1 56 365 Tm (Requested appointment: Thursday, October 16, 2026 at 2:00 PM \(Central Time\).) Tj
+/F1 11 Tf 1 0 0 1 56 344 Tm (Lockbox on front door, code 7731. Bill Lakeline Property Management, reference LPM-20931.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001872 00000 n 
+0000001942 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2017
+%%EOF

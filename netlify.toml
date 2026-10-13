@@ -1,0 +1,44 @@
+# Netlify deployment: the Express app runs as the "api" function; Slack clicks run in a background function.
+# Set all variables from .env.example in Netlify: Project configuration > Environment variables.
+
+[build]
+  command = "npm run typecheck"
+  publish = "public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["express"]
+
+# Route the public endpoints to the api function (path is preserved, so Express sees /mcp etc.).
+[[redirects]]
+  from = "/mcp"
+  to = "/.netlify/functions/api/mcp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/slack/*"
+  to = "/.netlify/functions/api/slack/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/workflows/*"
+  to = "/.netlify/functions/api/workflows/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/api/"
+  status = 200
+  force = true
